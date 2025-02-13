@@ -1,9 +1,7 @@
 REPO=accuknox
 IMGNAME=sastjob
-IMGTAG=latest
+IMGTAG?=latest
 IMG=${REPO}/${IMGNAME}:${IMGTAG}
-build:
-	docker buildx build -t ${IMG} .
 
-push:
-	docker push ${IMG}
+docker-buildx:
+	docker buildx build -f ./Dockerfile . --platform linux/arm64,linux/amd64 -t ${IMG} --push

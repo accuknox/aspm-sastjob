@@ -40,4 +40,4 @@ jobs:
         run: echo "RELEASE_TAG=${{ github.ref_name }}" >> $GITHUB_ENV
 
       - name: Build & Push image to Docker Hub
-        run: make build IMGTAG=${{ env.RELEASE_TAG }} && make push IMGTAG=${{ env.RELEASE_TAG }}
+        run: make docker-buildx IMGTAG=${{ env.RELEASE_TAG }}
