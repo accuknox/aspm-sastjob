@@ -9,7 +9,7 @@ docker run --rm -it \
 	-e SQ_ORG="accuknox" /* needed for sonarcloud.io */ \
 	-e REPORT_PATH=/app/data/ \
 	-v $PWD:/app/data/ \
-	accuknox/sastjob:1.0.2
+	accuknox/sastjob:1.0.3
 ```
 
 This will create a bunch of SQ-*.json files, one for every project/component found.
