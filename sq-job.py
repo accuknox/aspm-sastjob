@@ -97,20 +97,27 @@ async def _get_snippet(session, issue, sonar_url, auth_token):
 
     try:
         data = await async_sq_api(session, api, params, auth_token)
-        component_data = data[issue["component"]]
-        
-        fullSnippet = []
-        for source in component_data["sources"]:
-            try:
-                line = source["line"]
-                code = source["code"]
-                space_count = len(code) - len(code.lstrip())
-                code = " " * space_count + code
-                fullSnippet.append({"line": line, "code": code})
-            except Exception:
-                log.error(traceback.format_exc())
-        
-        issue["snippet"] = fullSnippet
+        component_key = issue.get("component")
+        if component_key and component_key in data:
+            component_data = data[component_key]
+            
+            # Build the full snippet
+            fullSnippet = []
+            for source in component_data.get("sources", []):
+                try:
+                    line = source.get("line")
+                    code = source.get("code")
+                    if line is not None and code is not None:
+                        space_count = len(code) - len(code.lstrip())
+                        code = " " * space_count + code
+                        fullSnippet.append({"line": line, "code": code})
+                except Exception:
+                    # Log any errors while processing individual lines
+                    log.error(traceback.format_exc())
+            
+            # Add the snippet to the issue if it's not empty
+            if fullSnippet:
+                issue["snippet"] = fullSnippet
     except Exception:
         log.error(traceback.format_exc())
 
@@ -128,15 +135,11 @@ async def _process_issues(session, issues, auth_token, sonar_url, is_hotspots=Fa
     # Get all details in parallel
     details_results = await asyncio.gather(*detail_tasks)
     
-    # If these are issues (not hotspots), add snippets
-    if not is_hotspots:
-        snippet_tasks = []
-        for issue in details_results:
-            task = _get_snippet(session, issue, sonar_url, auth_token)
-            snippet_tasks.append(task)
-        processed_issues = await asyncio.gather(*snippet_tasks)
-    else:
-        processed_issues = details_results
+    snippet_tasks = []
+    for issue in details_results:
+        task = _get_snippet(session, issue, sonar_url, auth_token)
+        snippet_tasks.append(task)
+    processed_issues = await asyncio.gather(*snippet_tasks)
     
     return processed_issues
 
