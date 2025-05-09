@@ -1,0 +1,13 @@
+[project]
+name = "accuknox-sq-sast"
+version = "0.1.0"
+description = "AccuKnox ASPM Scanner"
+authors = [{ name = "AccuKnox", email = "accuknox@accuknox.com" }]
+
+dependencies = [
+    "aiohttp==3.11.18",
+    "tqdm==4.67.1"
+]
+
+[project.scripts]
+accuknox-sq-sast = "accuknox_sq_sast.sq_job:main"

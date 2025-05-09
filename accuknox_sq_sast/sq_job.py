@@ -14,7 +14,11 @@ logging.basicConfig(level=logging.INFO)
 
 # Global variables
 pbar = None
-SCANNED_FILE_DIR = os.environ.get('REPORT_PATH', '/app/data/')
+SCANNED_FILE_DIR = os.environ.get('REPORT_PATH', '')
+SQ_URL = os.environ.get("SQ_URL", "")
+SQ_AUTH_TOKEN = os.environ.get('SQ_AUTH_TOKEN', "")
+SQ_PROJECTS = os.environ.get('SQ_PROJECTS', ".*")
+SQ_ORG = os.environ.get('SQ_ORG', "")
 
 async def async_sq_api(session, api, params, auth_token=None):
     """Make an async API call to SonarQube"""
@@ -54,8 +58,8 @@ async def _get_issue_details(session, issue, sonar_url, auth_token, is_hotspot=F
         api = f"{sonar_url}/api/hotspots/show"
     else:
         params = {"key": issue["rule"]}
-        if sq_org:
-            params["organization"] = sq_org
+        if SQ_ORG:
+            params["organization"] = SQ_ORG
         api = f"{sonar_url}/api/rules/show"
 
     max_retries = 3
@@ -270,8 +274,8 @@ async def get_all_results_async(auth_token, sonar_url):
     api = urllib.parse.urljoin(sonar_url, "api/components/search")
     params = {"qualifiers": "TRK", "ps": 500, "p": 1}
     
-    if sq_org:
-        params["organization"] = sq_org
+    if SQ_ORG:
+        params["organization"] = SQ_ORG
 
     try:
         async with aiohttp.ClientSession() as session:
@@ -282,7 +286,7 @@ async def get_all_results_async(auth_token, sonar_url):
             all_keys = []
             for component in components:
                 key = component["key"]
-                if re.search(sq_projects, key):
+                if re.search(SQ_PROJECTS, key):
                     all_keys.append(key)
 
             if total > 500:
@@ -294,7 +298,7 @@ async def get_all_results_async(auth_token, sonar_url):
                         break
                     for component in response["components"]:
                         key = component["key"]
-                        if re.search(sq_projects, key):
+                        if re.search(SQ_PROJECTS, key):
                             all_keys.append(key)
                     page += 1
 
@@ -323,18 +327,15 @@ async def get_all_results_async(auth_token, sonar_url):
         log.error(error_msg)
         return error_msg
 
-if __name__ == '__main__':
-    sq_url = os.environ.get("SQ_URL", "")
-    sq_auth_token = os.environ.get('SQ_AUTH_TOKEN', "")
-    sq_projects = os.environ.get('SQ_PROJECTS', ".*")
-    sq_org = os.environ.get('SQ_ORG', "")
-    
-    if not sq_url or not sq_auth_token:
+def main():
+    if not SQ_URL or not SQ_AUTH_TOKEN:
         log.error("SQ_URL or SQ_AUTH_TOKEN env var not specified")
         exit(1)
     
-    result = asyncio.run(get_all_results_async(sq_auth_token, sq_url))
+    result = asyncio.run(get_all_results_async(SQ_AUTH_TOKEN, SQ_URL))
     if "Error" in result or "No projects found" in result:
         log.error(result)
         exit(1)
         
+if __name__ == '__main__':
+    main()
