@@ -9,8 +9,18 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PIP_NO_CACHE_DIR=1
 
+FROM base AS build
+WORKDIR $BUILDWORKDIR
+COPY ./requirements.txt .
+RUN pip install --upgrade pip && \
+    pip wheel --no-cache-dir --no-deps --wheel-dir $BUILDWORKDIR/wheels -r requirements.txt
+
 FROM base AS final
 WORKDIR $BUILDWORKDIR
+COPY --from=build $BUILDWORKDIR/wheels ./wheels
+RUN pip install --upgrade pip && \
+    pip install  --no-cache-dir --no-cache ./wheels/* && rm -rf ./wheels
+
 COPY . . 
 RUN pip install -e .
 
