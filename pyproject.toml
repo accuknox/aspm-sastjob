@@ -10,4 +10,4 @@ dependencies = [
 ]
 
 [project.scripts]
-accuknox-sq-sast = "accuknox_sq_sast.sq_job:main"
+accuknox-sq-sast = "accuknox_sq_sast.cli:main"
