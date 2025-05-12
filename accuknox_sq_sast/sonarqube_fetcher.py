@@ -86,19 +86,26 @@ class SonarQubeFetcher:
         params = {"issueKey": issue["key"]}
         try:
             data = await self._async_sq_api(session, api, params)
-            component_data = data.get(issue.get("component"), {})
-            fullSnippet = []
-            for source in component_data.get("sources", []):
-                try:
-                    line = source.get("line")
-                    code = source.get("code")
-                    if line and code:
-                        space_count = len(code) - len(code.lstrip())
-                        fullSnippet.append({"line": line, "code": " " * space_count + code})
-                except Exception:
-                    Logger.get_logger().error(traceback.format_exc())
-            if fullSnippet:
-                issue["snippet"] = fullSnippet
+            component_key = issue.get("component")
+            if component_key and component_key in data:
+                component_data = data[component_key]
+                
+                # Build the full snippet
+                fullSnippet = []
+                for source in component_data.get("sources", []):
+                    try:
+                        line = source.get("line")
+                        code = source.get("code")
+                        if line is not None and code is not None:
+                            space_count = len(code) - len(code.lstrip())
+                            code = " " * space_count + code
+                            fullSnippet.append({"line": line, "code": code})
+                    except Exception:
+                        # Log any errors while processing individual lines
+                        Logger.get_logger().error(traceback.format_exc())
+                # Add the snippet to the issue if it's not empty
+                if fullSnippet:
+                    issue["snippet"] = fullSnippet
         except Exception:
             Logger.get_logger().error(traceback.format_exc())
         return issue
