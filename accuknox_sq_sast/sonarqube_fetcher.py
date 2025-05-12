@@ -1,15 +1,12 @@
 import asyncio
 import re
+from accuknox_sq_sast.utils.logger import Logger
 import aiohttp
 from tqdm import tqdm
 import json
 import urllib.parse
 import os
 import traceback
-import logging
-
-log = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
 
 class SonarQubeFetcher:
     def __init__(self, sq_url, auth_token, sq_projects=".*", sq_org="", report_path=""):
@@ -28,14 +25,14 @@ class SonarQubeFetcher:
         auth = aiohttp.BasicAuth(self.auth_token, '')
         async with session.get(api, params=params, auth=auth) as response:
             if response.status == 401:
-                log.error("SonarQube authentication error")
+                Logger.get_logger().error("SonarQube authentication error")
                 return None
             if response.status != 200:
-                log.error(f"SonarQube API error: {response.status}")
+                Logger.get_logger().error(f"SonarQube API error: {response.status}")
                 return None
             data = await response.json()
             if "errors" in data:
-                log.error(f"SonarQube API error: {data['errors'][0]['msg']}")
+                Logger.get_logger().error(f"SonarQube API error: {data['errors'][0]['msg']}")
                 return None
             return data
 
@@ -99,11 +96,11 @@ class SonarQubeFetcher:
                         space_count = len(code) - len(code.lstrip())
                         fullSnippet.append({"line": line, "code": " " * space_count + code})
                 except Exception:
-                    log.error(traceback.format_exc())
+                    Logger.get_logger().error(traceback.format_exc())
             if fullSnippet:
                 issue["snippet"] = fullSnippet
         except Exception:
-            log.error(traceback.format_exc())
+            Logger.get_logger().error(traceback.format_exc())
         return issue
 
     async def _process_issues(self, session, issues, is_hotspots=False):
@@ -160,7 +157,7 @@ class SonarQubeFetcher:
 
                 return True, issues_file, "Success."
             except Exception as e:
-                log.error(f"Error fetching project {key}: {str(e)}")
+                Logger.get_logger().error(f"Error fetching project {key}: {str(e)}")
                 return False, None, str(e)
 
     async def process_project(self, key):
@@ -178,7 +175,7 @@ class SonarQubeFetcher:
                         raise Exception(result[2])
                 return results
             except Exception as e:
-                log.error(f"Error processing project {key}: {str(e)}")
+                Logger.get_logger().error(f"Error processing project {key}: {str(e)}")
                 raise
 
     async def fetch_all(self):
@@ -213,8 +210,10 @@ class SonarQubeFetcher:
                     if isinstance(res, list):
                         all_files.extend(res)
                     else:
-                        log.error(f"Project processing failed: {res}")
+                        Logger.get_logger().error(f"Project processing failed: {res}")
                         return f"Project processing failed: {res}"
-                return f"Success! Data saved to {all_files}"
+                    
+                Logger.get_logger().info(f"Success! Data saved to {all_files}")
+                return all_files
             except Exception as e:
                 return f"An error occurred: {str(e)}"

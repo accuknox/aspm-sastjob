@@ -6,7 +6,8 @@ authors = [{ name = "AccuKnox", email = "accuknox@accuknox.com" }]
 
 dependencies = [
     "aiohttp==3.11.18",
-    "tqdm==4.67.1"
+    "tqdm==4.67.1",
+    "colorama==0.4.6"
 ]
 
 [project.scripts]

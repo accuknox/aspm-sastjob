@@ -11,4 +11,4 @@ COPY . .
 
 RUN pip install -e .
 
-CMD ["accuknox-sq-sast"]
+ENTRYPOINT [ "accuknox-sq-sast" ]
