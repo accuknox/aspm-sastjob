@@ -1,14 +1,17 @@
-# syntax = docker/dockerfile:1.6
+FROM python:3.13-alpine3.21 AS base
+ENV BUILDWORKDIR=/app
+WORKDIR $BUILDWORKDIR
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONFAULTHANDLER=1 \
+    PYTHONHASHSEED=random \
+    PYTHONUNBUFFERED=1 \
+    PIP_DEFAULT_TIMEOUT=100 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PIP_NO_CACHE_DIR=1
 
-FROM python:3.9-slim
-
-ENV PYTHONDONTWRITEBYTECODE=1
-WORKDIR /app
-
-RUN apt-get update
-
-COPY . .
-
+FROM base AS final
+WORKDIR $BUILDWORKDIR
+COPY . . 
 RUN pip install -e .
 
 ENTRYPOINT [ "accuknox-sq-sast" ]
