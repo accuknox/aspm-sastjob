@@ -35,7 +35,7 @@ jobs:
         run: python -m build
 
       - name: Create Release and Upload Artifacts
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@39ba0b9d81217c984acfad95ddcc7db226387497
         with:
           tag_name: ${{ github.ref_name }}
           prerelease: true
