@@ -157,12 +157,23 @@ class SonarQubeFetcher:
                 processed_hotspots = await self._process_issues(session, all_hotspots, is_hotspots=True)
 
                 # Save results
+                # branch_suffix = f"-{branch.replace('/', '_')}" if branch else ""
+                # issues_file = os.path.join(self.report_path, f"SQ-{key}{branch_suffix}.json")
+                # with open(issues_file, "w") as f:
+                #     json.dump({"branch": branch, "issues": processed_issues, "hotspots": processed_hotspots}, f, indent=2)
+                # return True, issues_file, "Success."
+#-----------------Vicky--------------------# 
                 branch_suffix = f"-{branch.replace('/', '_')}" if branch else ""
-                issues_file = os.path.join(self.report_path, f"SQ-{key}{branch_suffix}.json")
+                # sanitize only for filename (keep original key for API)
+                safe_key = re.sub(r'[^A-Za-z0-9._-]', '_', key)
+
+                issues_file = os.path.join(self.report_path, f"SQ-{safe_key}{branch_suffix}.json")
                 with open(issues_file, "w") as f:
                     json.dump({"branch": branch, "issues": processed_issues, "hotspots": processed_hotspots}, f, indent=2)
 
+                Logger.get_logger().info(f"Success! Data saved to {issues_file}")
                 return True, issues_file, "Success."
+#-----------------Vicky--------------------#            
             except Exception as e:
                 Logger.get_logger().error(f"Error fetching project {key}: {str(e)}")
                 return False, None, str(e)
