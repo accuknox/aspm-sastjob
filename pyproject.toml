@@ -5,7 +5,7 @@ description = "AccuKnox ASPM Scanner"
 authors = [{ name = "AccuKnox", email = "accuknox@accuknox.com" }]
 
 dependencies = [
-    "aiohttp==3.11.18",
+    "aiohttp==3.14.3",
     "tqdm==4.67.1",
     "colorama==0.4.6"
 ]
